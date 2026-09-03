@@ -1,0 +1,45 @@
+# Binaries
+redis-server
+redforge
+server
+*.o
+*.out
+
+# Build directories
+build/
+bin/
+cmake-build-*/
+
+# RDB persistence files
+*.rdb
+
+# WSL / Linux artifacts
+*~
+.fuse_hidden*
+.Trash-*
+.nfs*
+
+# macOS
+.DS_Store
+
+# Core dumps
+core
+core.*
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+tags
+
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+Makefile.local
+
+# vcpkg
+vcpkg_installed/
