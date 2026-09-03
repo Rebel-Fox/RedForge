@@ -5,7 +5,7 @@
 ![Redis Protocol](https://img.shields.io/badge/Protocol-RESP-orange.svg?style=flat)
 ![CMake](https://img.shields.io/badge/Build-CMake_3.13+-purple.svg?style=flat)
 
-A high-performance, multithreaded Redis-compatible in-memory database built from scratch in modern C++17[cite: 1, 3]. Features zero-copy RESP protocol parsing[cite: 1, 3], type-safe numeric deserialization via `std::from_chars`[cite: 1], segregated storage subsystems with reader-writer concurrency[cite: 1, 2], and distributed leader-follower replication[cite: 1, 3].
+A high-performance, multithreaded Redis-compatible in-memory database built from scratch in modern C++17. Features zero-copy RESP protocol parsing, type-safe numeric deserialization via `std::from_chars`, segregated storage subsystems with reader-writer concurrency, and distributed leader-follower replication.
 
 ---
 
@@ -14,7 +14,7 @@ A high-performance, multithreaded Redis-compatible in-memory database built from
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                         POSIX TCP Socket Layer                           │
-│     socket() → bind() → listen() → accept() → non-blocking wire I/O     │
+│     socket() → bind() → listen() → accept() → non-blocking wire I/O      │
 │                  ┌────────────────────────────┐                          │
 │                  │    std::thread per client  │                          │
 │                  └────────────┬───────────────┘                          │
@@ -52,14 +52,14 @@ A high-performance, multithreaded Redis-compatible in-memory database built from
 
 | Subsystem             | Technical Implementation                                                                                                                                                           |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Networking**        | Raw POSIX TCP sockets (`socket`, `bind`, `listen`, `accept`) managing concurrent client connections via detached `std::thread` workers[cite: 1].                                   |
-| **Protocol Framing**  | Zero-copy deserialization using `std::string_view` and `std::from_chars` without dynamic allocation overhead; handles multi-bulk arrays and inline plain ASCII commands (`PING_INLINE`)[cite: 1]. |
-| **Scalar KV Store**   | In-memory key-value engine with `PX` expiration units and passive TTL pruning, synchronized via reader-writer locks (`std::shared_mutex`)[cite: 1].                                |
-| **List Primitives**   | Double-ended queues (`std::deque`) supporting `LPUSH`, `RPUSH`, `LPOP`, and `LRANGE`, coordinating consumer queues via `std::condition_variable`[cite: 1].                          |
-| **Time-Series Streams** | Append-only event log backed by Red-Black trees (`std::map`), strictly enforcing 128-bit monotonic sequence ordering (`<ms>-<seq>`) for `XADD` and `XRANGE`[cite: 1, 2].           |
-| **Atomic Transactions** | Per-client isolation queues executing commands sequentially under `MULTI`, `EXEC`, and `DISCARD` blocks[cite: 1, 3].                                                               |
-| **Snapshot Persistence** | Binary RDB file deserializer reconstructing database state on startup by decoding magic headers, opcodes (`0xFA`, `0xFE`, `0xFB`), string length encodings, and TTL attributes[cite: 1, 3]. |
-| **Distributed Replication** | Master-follower TCP state machine supporting dynamic handshakes (`PING` → `REPLCONF` → `PSYNC`), write stream propagation, and synchronous quorum consistency via `WAIT`[cite: 1, 3]. |
+| **Networking**        | Raw POSIX TCP sockets (`socket`, `bind`, `listen`, `accept`) managing concurrent client connections via detached `std::thread` workers.                                   |
+| **Protocol Framing**  | Zero-copy deserialization using `std::string_view` and `std::from_chars` without dynamic allocation overhead; handles multi-bulk arrays and inline plain ASCII commands (`PING_INLINE`). |
+| **Scalar KV Store**   | In-memory key-value engine with `PX` expiration units and passive TTL pruning, synchronized via reader-writer locks (`std::shared_mutex`).                                |
+| **List Primitives**   | Double-ended queues (`std::deque`) supporting `LPUSH`, `RPUSH`, `LPOP`, and `LRANGE`, coordinating consumer queues via `std::condition_variable`.                          |
+| **Time-Series Streams** | Append-only event log backed by Red-Black trees (`std::map`), strictly enforcing 128-bit monotonic sequence ordering (`<ms>-<seq>`) for `XADD` and `XRANGE`.           |
+| **Atomic Transactions** | Per-client isolation queues executing commands sequentially under `MULTI`, `EXEC`, and `DISCARD` blocks.                                                               |
+| **Snapshot Persistence** | Binary RDB file deserializer reconstructing database state on startup by decoding magic headers, opcodes (`0xFA`, `0xFE`, `0xFB`), string length encodings, and TTL attributes. |
+| **Distributed Replication** | Master-follower TCP state machine supporting dynamic handshakes (`PING` → `REPLCONF` → `PSYNC`), write stream propagation, and synchronous quorum consistency via `WAIT`. |
 
 ---
 
@@ -80,9 +80,9 @@ Evaluated using the official `redis-benchmark` suite on WSL2 Linux at concurrenc
 
 ### Architectural Insights
 
-- **Optimistic Shared-Lock Read Paths:** Concurrent `GET` queries achieve lower median latency (**0.455 ms p50**) compared to `SET` (**0.759 ms p50**) due to non-blocking reader concurrency under `std::shared_lock`[cite: 1]. `SET` operations acquire an exclusive `std::unique_lock`, serializing concurrent writes without lock starvation.
-- **Double-Ended List Efficiency:** `LPUSH` sustained the lowest median response latency across all collection operations at **0.383 ms p50** and **1.535 ms p99**, validating the low constant-factor overhead of `std::deque::emplace_front`[cite: 1].
-- **Monotonic Tree Indexing:** Even while enforcing 128-bit millisecond sequence validation and node rebalancing in `std::map`, stream event ingestion (`XADD`) sustains **10,598+ QPS** with a sub-millisecond median latency of **0.783 ms**[cite: 1, 2].
+- **Optimistic Shared-Lock Read Paths:** Concurrent `GET` queries achieve lower median latency (**0.455 ms p50**) compared to `SET` (**0.759 ms p50**) due to non-blocking reader concurrency under `std::shared_lock`. `SET` operations acquire an exclusive `std::unique_lock`, serializing concurrent writes without lock starvation.
+- **Double-Ended List Efficiency:** `LPUSH` sustained the lowest median response latency across all collection operations at **0.383 ms p50** and **1.535 ms p99**, validating the low constant-factor overhead of `std::deque::emplace_front`.
+- **Monotonic Tree Indexing:** Even while enforcing 128-bit millisecond sequence validation and node rebalancing in `std::map`, stream event ingestion (`XADD`) sustains **10,598+ QPS** with a sub-millisecond median latency of **0.783 ms**.
 
 ### Payload Scaling: LRANGE Throughput
 
@@ -93,7 +93,7 @@ Evaluated using the official `redis-benchmark` suite on WSL2 Linux at concurrenc
 | **500 elements**    | 6,706.91          | 1.351 ms     | 1.943 ms     | 2.775 ms     | 204.799 ms  |
 | **600 elements**    | 5,884.08          | 1.535 ms     | 2.375 ms     | 3.655 ms     | 206.463 ms  |
 
-`LRANGE` demonstrates O(M) throughput scaling as the element slice size increases[cite: 1]. The throughput decay from **10,537 QPS** down to **5,884 QPS** reflects the serialized byte-framing overhead of larger multi-bulk RESP responses traversing kernel TCP socket buffers[cite: 1].
+`LRANGE` demonstrates O(M) throughput scaling as the element slice size increases. The throughput decay from **10,537 QPS** down to **5,884 QPS** reflects the serialized byte-framing overhead of larger multi-bulk RESP responses traversing kernel TCP socket buffers.
 
 ---
 
@@ -101,9 +101,9 @@ Evaluated using the official `redis-benchmark` suite on WSL2 Linux at concurrenc
 
 ### Prerequisites
 
-- C++17-compliant compiler (`g++` 7.0+ or `clang++` 5.0+)[cite: 1]
-- POSIX-compliant environment (Linux, macOS, or WSL2)[cite: 1]
-- CMake 3.13+ (optional) or GNU Make[cite: 1]
+- C++17-compliant compiler (`g++` 7.0+ or `clang++` 5.0+)
+- POSIX-compliant environment (Linux, macOS, or WSL2)
+- CMake 3.13+ (optional) or GNU Make
 
 ### Option 1: CMake (Recommended)
 
@@ -125,7 +125,7 @@ make debug      # Debug build (-g)
 ### Option 3: Direct Compilation
 
 ```bash
-g++ -O3 -std=c++17 src/Server.cpp -o redforge -pthread
+g++ -O3 -std=c++17 src/server.cpp -o redforge -pthread
 ./redforge
 ```
 
@@ -242,5 +242,5 @@ RedForge/
 ├── Makefile
 ├── README.md
 └── src/
-    └── Server.cpp
+    └── server.cpp
 ```
